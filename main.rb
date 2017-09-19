@@ -13,7 +13,7 @@ class Piece
   attr_accessor :color
 
   def initialize(color)
-    throw InvalidColorException if !COLORS.include?(color)
+    throw InvalidColorException unless COLORS.include?(color)
     @color = color
   end
 
@@ -32,7 +32,7 @@ end
 
 # TODO: add documentation
 class Board
-  def initialize(matrix=nil)
+  def initialize(matrix = nil)
     # 6 rows, 7 columns
     @matrix = matrix || Matrice.build(6, 7) { nil }
   end
