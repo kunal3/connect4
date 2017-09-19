@@ -1,42 +1,19 @@
-require_relative 'matrice.rb'
+require 'matrix'
 
 require 'pp'
 require 'pry'
 
+require_relative 'scale_feature_vector_matrix'
+
 class NeuralNet
   def initialize(args = {})
-    @random = Random.new
-
-    @activation_function = args[:activation_function] || defaults[:activation_function]
-    @depth               = args[:depth]               || defaults[:depth]
-    @input_dimension     = args[:input_dimension]     || defaults[:input_dimension]
-    @layer_size          = args[:layer_size]          || defaults[:layer_size]
-
-    pp '[NeuralNet.new] @activation_function', @activation_function
-    pp '[NeuralNet.new] @depth', @depth
+    # TODO: validate input_dimension against weights
+    set_defaults!(args)
+    @input_dimension = args[:input_dimension]
     pp '[NeuralNet.new] @input_dimension', @input_dimension
-    pp '[NeuralNet.new] @layer_size', @layer_size
-
-    # TODO: differentiate input and output weights
-
-    num_weights = @depth + 1
-
-    pp '[NeuralNet.new] num_weights', num_weights
-
-    @weights = Array.new(num_weights) do |i|
-      pp '[Array.new(@depth)] i', i
-      rows = cols = @layer_size
-
-      rows = @input_dimension if i == 0
-      cols = 1                if i == (num_weights - 1)
-
-      pp '[Array.new(@depth)] rows', rows
-      pp '[Array.new(@depth)] cols', cols
-
-      Matrix::build(rows, cols) { |_i, _j| @random.rand() }
-    end
-
+    @weights = args[:weights] || initial_weights(:random_initial_weight)
     pp '[NeuralNet.new] @weights', @weights
+    self
   end
 
   # Number
@@ -66,12 +43,56 @@ class NeuralNet
 
   private
 
+  def set_defaults!(args)
+    @activation_function = args[:activation_function] || defaults[:activation_function]
+    @depth               = args[:depth]               || defaults[:depth]
+    @layer_size          = args[:layer_size]          || defaults[:layer_size]
+
+    pp '[NeuralNet.new] @activation_function', @activation_function
+    pp '[NeuralNet.new] @depth', @depth
+    pp '[NeuralNet.new] @layer_size', @layer_size
+
+    self
+  end
+
   def defaults
     {
       :activation_function => :sigmoid,
       :depth => 1,
       :layer_size => 3,
     }
+  end
+
+  def initial_weights(strategy)
+    # TODO: differentiate input and output weights
+    # TODO: create helpers to iterate through layers
+
+    num_weights = @depth + 1
+
+    pp '[NeuralNet.new] num_weights', num_weights
+
+    Array.new(num_weights) do |n|
+      pp '[Array.new(@depth)] n', n
+      rows = cols = @layer_size
+
+      rows = @input_dimension if n == 0
+      cols = 1                if n == (num_weights - 1)
+
+      pp '[Array.new(@depth)] rows', rows
+      pp '[Array.new(@depth)] cols', cols
+
+      Matrix::build(rows, cols) do |row_index, col_index|
+        self.send(strategy, row_index, col_index)
+      end
+    end
+  end
+
+  def random_initial_weight(_row, _col)
+    random.rand
+  end
+
+  def random
+    @random ||= Random.new
   end
 
   # Number
@@ -101,31 +122,6 @@ class NeuralNet
   end
 end
 
-def normalize(values)
-  pp '[normalize] values', values
-  min = values.min
-  pp '[normalize] min', min
-  max = values.max
-  pp '[normalize] max', max
-  range = max - min
-  pp '[normalize] range', range
-  normalized_values = values.map { |v| (v - min).fdiv(range) }
-  pp '[normalize] normalized_values', normalized_values
-  normalized_values
-end
-
-def scale(input_matrix)
-  features = input_matrix.transpose
-  pp '[scale] features', features
-  row_vectors = features.row_vectors
-  pp '[scale] row_vectors', row_vectors
-  normalized_vectors = row_vectors.map { |feature_values| normalize(feature_values) }
-  # TODO: should un-transpose?
-  pp '[scale] normalized_vectors', normalized_vectors
-  Matrix::build(row_vectors.length, row_vectors[0].size) { |row, col| normalized_vectors[row][col] }.transpose
-  # normalized_vectors
-end
-
 neural_net = NeuralNet.new(input_dimension: 2)
 
 pp 'neural_net', neural_net
@@ -135,7 +131,7 @@ x = Matrix[[3, 5], [5, 1], [10, 2]]
 
 pp 'x', x
 
-scaled_x = scale(x)
+scaled_x = scale_feature_vector_matrix(x)
 
 pp 'scaled_x', scaled_x
 
@@ -148,7 +144,7 @@ pp 'y_hat', y_hat
 
 j = neural_net.cost(scaled_x, y)
 
-pp j
+pp 'j', j
 
 # TODO: minimize cost function
 
