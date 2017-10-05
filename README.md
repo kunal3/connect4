@@ -9,6 +9,10 @@ This neural net is so good it can beat your idiot savant brother at Connect 4. W
 - [ ] Step 3: ???
 - [ ] Step 4: Profit!
 
+### TODO
+
+- [ ] Add [RDL](https://github.com/plum-umd/rdl)
+
 ## Authors
 
 - jeremyjs
