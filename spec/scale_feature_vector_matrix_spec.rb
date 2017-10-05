@@ -1,7 +1,7 @@
 require 'matrix'
 
 require_relative 'spec_helper'
-require_relative '../scale_feature_vector_matrix'
+require_relative '../src/scale_feature_vector_matrix'
 
 RSpec.describe 'scale_feature_vector_matrix' do
   it 'scales each value in the matrix' do

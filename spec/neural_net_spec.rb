@@ -1,5 +1,5 @@
 require_relative 'spec_helper'
-require_relative '../neural_net'
+require_relative '../src/neural_net'
 
 RSpec.describe 'neural_net' do
   describe '#cost' do
